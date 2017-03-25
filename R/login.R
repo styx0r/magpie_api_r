@@ -39,7 +39,7 @@ login <- function(email, password){
 #' @export
 logged_in <- function(){
 
-  webpage <- httr::content(httr::GET(magpie::get_url())) %>% html_nodes(xpath = "//a")
+  webpage <- httr::content(httr::GET(magpie::get_url())) %>% rvest::html_nodes(xpath = "//a")
   values <- webpage %>%
     rvest::html_nodes(xpath='//a') %>%
     rvest::html_attr(name = "href")
