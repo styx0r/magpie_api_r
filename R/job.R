@@ -110,7 +110,7 @@ delete_job <- function(project_id, job_id){
   if(!project_id %in% magpie::get_projects()$id) return("project_id not accessible")
   if(!job_id %in% magpie::get_jobs_status(project_id)$id) return("job_id is not in the given project_id")
 
-  DELETE(paste(magpie::get_url(), "/jobs/", job_id, "?redirect=false", sep = ""), body = list(authenticity_token = magpie::get_auth_token(),
+  httr::DELETE(paste(magpie::get_url(), "/jobs/", job_id, "?redirect=false", sep = ""), body = list(authenticity_token = magpie::get_auth_token(),
                                                                                                       rel = "nofollow"))
 
   return(magpie::get_jobs_status(project_id))

@@ -72,7 +72,7 @@ logout <- function(){
 
   if(!magpie::logged_in()) return(FALSE)
 
-  DELETE(paste(magpie::get_url(), "logout?redirect=false", sep = "/"), body = list(authenticity_token = magpie::get_auth_token(),
+  httr::DELETE(paste(magpie::get_url(), "logout?redirect=false", sep = "/"), body = list(authenticity_token = magpie::get_auth_token(),
                                                                     rel = "nofollow") )
   return(TRUE)
 }
