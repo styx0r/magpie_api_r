@@ -60,20 +60,20 @@ create_job <- function(project_id, params = list()){
   names <- webpage %>%
     rvest::html_nodes(xpath='.//input | .//select') %>%
     rvest::html_attr(name = "name")# %>%
-  
+
   params_list <- values
   names(params_list) <- names
-  
+
   files <- webpage %>%
     rvest::html_nodes(xpath = ".//input[contains(@class, 'file')]") %>% rvest::html_attr(name = "name")
   selects <- webpage %>%
     rvest::html_nodes(xpath = ".//select") %>% rvest::html_attr(name = "name")
   select_values <- webpage %>%
     rvest::html_nodes(xpath='.//select/option[@selected]') %>% rvest::html_text()
-  
-  if(length(files) > 0)
+
+  if (!any(grepl("file", names(params))) && length(files) > 0)
     params_list <- params_list[-which(names(params_list) %in% files)]
-  
+
   if(length(selects) > 0)
     params_list[which(names(params_list) %in% selects)] <- select_values
 
@@ -86,6 +86,10 @@ create_job <- function(project_id, params = list()){
     for(i in 1:length(params_input_names))
       if(params_input_names[i] %in% params_names)
         params_list[[which(params_input_names[i] == params_names)]] <- params[[i]]
+  }
+
+  if(any(grepl("file", names(params)))){
+    params_list[[which(grepl("file", names(params_list)))]] <- httr::upload_file(params[[which(grepl("file", names(params)))]], "text/csv")
   }
 
   project_submit <- httr::POST(url = paste(magpie::get_url(), "/", "jobs", sep = ""), body = params_list)

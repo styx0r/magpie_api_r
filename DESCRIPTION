@@ -1,7 +1,7 @@
 Package: magpie
 Type: Package
 Title: magpie: an API to the web server based modelling environment
-Version: 0.1.0
+Version: 0.1.1
 Author: Christoph Baldow
 Maintainer: Christoph Baldow <christoph.baldow@gmail.com>
 Description: This package is an R api for magpie.
