@@ -42,7 +42,7 @@ get_jobs_status <- function(project_id){
 #'@export
 create_job <- function(project_id, params = list()){
 
-  stopifnot(logged_in())
+  stopifnot(magpie::logged_in())
 
   stopifnot(!missing(project_id))
   if(!project_id %in% magpie::get_projects()$id)
@@ -71,7 +71,7 @@ create_job <- function(project_id, params = list()){
   select_values <- webpage %>%
     rvest::html_nodes(xpath='.//select/option[@selected]') %>% rvest::html_text()
 
-  if (!any(grepl("file", names(params))) && length(files) > 0)
+  if (!any(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params))) && length(files) > 0)
     params_list <- params_list[-which(names(params_list) %in% files)]
 
   if(length(selects) > 0)
@@ -88,8 +88,8 @@ create_job <- function(project_id, params = list()){
         params_list[[which(params_input_names[i] == params_names)]] <- params[[i]]
   }
 
-  if(any(grepl("file", names(params)))){
-    params_list[[which(grepl("file", names(params_list)))]] <- httr::upload_file(params[[which(grepl("file", names(params)))]], "text/csv")
+  if(any(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params)))){
+    params_list[[which(files[1] == names(params_list))]] <- httr::upload_file(params[[which(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params)))]], "text/csv")
   }
 
   project_submit <- httr::POST(url = paste(magpie::get_url(), "/", "jobs", sep = ""), body = params_list)

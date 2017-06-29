@@ -33,7 +33,7 @@ get_models <- function(){
 #' @export
 get_params <- function(model_id){
 
-  stopifnot(logged_in())
+  stopifnot(magpie::logged_in())
 
   stopifnot(!missing(model_id))
   if(!(model_id %in% magpie::get_models()$id)) return("No valid model id. Check for model ids with get_models().")
@@ -61,8 +61,8 @@ get_params <- function(model_id){
   select_values <- webpage %>%
     rvest::html_nodes(xpath='//select/option[@selected]') %>% rvest::html_text()
 
-  if(length(files) > 0)
-    params_list <- params_list[-which(names(params_list) %in% files)]
+  #if(length(files) > 0)
+  #  params_list <- params_list[-which(names(params_list) %in% files)]
 
   if(length(selects) > 0)
     params_list[which(names(params_list) %in% selects)] <- select_values
