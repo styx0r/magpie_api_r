@@ -88,7 +88,7 @@ create_job <- function(project_id, params = list()){
         params_list[[which(params_input_names[i] == params_names)]] <- params[[i]]
   }
 
-  if(any(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params)))){
+  if (length(files) > 0 && any(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params)))){
     params_list[[which(files[1] == names(params_list))]] <- httr::upload_file(params[[which(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params)))]], "text/csv")
   }
 
