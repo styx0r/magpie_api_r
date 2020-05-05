@@ -2,23 +2,61 @@
 #'
 #' @return list of all existing projects
 #' @export
-get_projects <- function(){
+get_projects <- function(private = TRUE){
 
   stopifnot(magpie::logged_in())
 
   webpage <- httr::content(httr::GET(paste(magpie::get_url(), "projects", sep = "/")))
   if((grep("You have no projects yet.", as.character(webpage)) %>% length) > 0)
-    return("no projects found")
+    return("No projects found.")
+
+  PublicProjectOnly <- (webpage %>% rvest::html_nodes(xpath='//thead/tr/th') %>% rvest::html_text())[2] == 'Created by'
+
+  if (PublicProjectOnly && private) return ('No private projects found.')
+
+  if (private) {
+    headingXML <- (webpage %>% rvest::html_nodes(xpath='//thead'))[[1]]
+    headingXML <- xml2::read_xml(as.character(headingXML))
+  } else {
+    if (PublicProjectOnly) {
+      headingXML <- (webpage %>% rvest::html_nodes(xpath='//thead'))[[1]]
+      headingXML <- xml2::read_xml(as.character(headingXML))
+    } else {
+      if (length((webpage %>% rvest::html_nodes(xpath='//thead'))) < 2)
+        return('No public projects found')
+      headingXML <- (webpage %>% rvest::html_nodes(xpath='//thead'))[[2]]
+      headingXML <- xml2::read_xml(as.character(headingXML))
+    }
+  }
 
   # heading
-  heading <- (webpage %>% rvest::html_nodes(xpath='//thead/tr/th') %>% rvest::html_text())[-1]
+  heading <- (headingXML %>% rvest::html_nodes(xpath='//thead/tr/th') %>% rvest::html_text())[-1]
   out <- data.frame(matrix(nrow = 0, ncol = length(heading)+1))
   colnames(out) <- c("id", heading)
 
+  if (private) {
+    projectsXML <- (webpage %>% rvest::html_nodes(xpath = "//tbody"))[[1]]
+    projectsXML <- xml2::read_xml(as.character(projectsXML))
+  } else {
+    if (PublicProjectOnly) {
+      projectsXML <- (webpage %>% rvest::html_nodes(xpath='//tbody'))[[1]]
+      projectsXML <- xml2::read_xml(as.character(projectsXML))
+    } else {
+      if (length((webpage %>% rvest::html_nodes(xpath='//tbody'))) < 2)
+        return('No public projects found.')
+      projectsXML <- (webpage %>% rvest::html_nodes(xpath='//tbody'))[[2]]
+      projectsXML <- xml2::read_xml(as.character(projectsXML))
+    }
+  }
+
   model_ids <- c()
   row <- 1
-  for(project in (webpage %>% rvest::html_nodes(xpath = "//tbody/tr"))){
-      out[row, 1] <- gsub("/projects/", "", (((project %>% rvest::html_nodes(xpath=".//td"))[1]) %>% rvest::html_nodes(xpath=".//a"))[2] %>% rvest::html_attr("href"))
+  for(project in (projectsXML %>% rvest::html_nodes(xpath = "//tbody/tr"))){
+      if (private) {
+        out[row, 1] <- gsub("/projects/", "", (((project %>% rvest::html_nodes(xpath=".//td"))[1]) %>% rvest::html_nodes(xpath=".//a"))[2] %>% rvest::html_attr("href"))
+      } else {
+        out[row, 1] <- gsub("/projects/", "", (project %>% rvest::html_nodes(xpath=".//td"))[3] %>% rvest::html_nodes(xpath=".//a") %>% rvest::html_attr("href"))
+      }
       col <- 2
       for(element in ((project %>% rvest::html_nodes(xpath=".//td"))[-1])){
         out[row, col] <- rvest::html_text(element)
