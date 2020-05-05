@@ -88,8 +88,17 @@ create_job <- function(project_id, params = list()){
         params_list[[which(params_input_names[i] == params_names)]] <- params[[i]]
   }
 
-  if (length(files) > 0 && any(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params)))){
-    params_list[[which(files[1] == names(params_list))]] <- httr::upload_file(params[[which(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params)))]], "text/csv")
+  if (length(files) > 0) {
+    cParams <- names(params)
+    cParams <- unlist(lapply(lapply(strsplit(x = cParams, split = "\\["), gsub, pattern = '\\]', replacement = ''), `[[`, 2))
+    for (file in files) {
+      cName <- gsub("\\]", "", unlist(strsplit(x = file, split = "\\[")))[[3]]
+      if (!cName%in%cParams) next
+      params_list[[file]] <- httr::upload_file(params[[which(cName == cParams)[1]]], "text/csv")
+    }
+    # if (any(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params))))){
+    #   params_list[[which(files[1] == names(params_list))]] <- httr::upload_file(params[[which(grepl(last(gsub("\\]", "", strsplit(x = files[1], split = "\\[")[[1]])), names(params)))]], "text/csv")
+    # }
   }
 
   project_submit <- httr::POST(url = paste(magpie::get_url(), "/", "jobs", sep = ""), body = params_list)
